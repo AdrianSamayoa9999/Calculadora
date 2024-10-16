@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora</title>
+    <style>
+        /* Estilos existentes */
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 20px;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        #calculadora {
+            width: 100%;
+            max-width: 400px;
+            background-color: #1e1e1e;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.5);
+            border: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        #display {
+            width: 100%;
+            height: 60px;
+            background-color: #000;
+            border: 2px solid #ff0000;
+            color: #fff;
+            font-size: 26px;
+            text-align: right;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: inset 0px 4px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .button {
+            width: 100%;
+            max-width: 70px;
+            height: 70px;
+            margin: 5px;
+            font-size: 24px;
+            color: #fff;
+            background-color: #333;
+            border: none;
+            border-radius: 50%;
+            box-shadow: 0px 4px 5px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .button:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        .button:hover {
+            background-color: #ff0000;
+        }
+
+        .buttons-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-gap: 10px;
+            width: 100%;
+        }
+
+        #treeContainer {
+            margin-top: 30px;
+            text-align: center;
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        svg {
+            border: 1px solid #333;
+        }
+
+        line {
+            stroke: #e0e0e0;
+            stroke-width: 2;
+        }
+
+        circle {
+            fill: #ff0000;
+            stroke: #e0e0e0;
+            stroke-width: 2;
+        }
+
+        text {
+            fill: #e0e0e0;
+            font-size: 16px;
+            font-family: Arial, sans-serif;
+        }
+
+        #tokenTable {
+            margin-top: 20px;
+            width: 100%;
+            max-width: 400px;
+            border-collapse: collapse;
+        }
+
+        #tokenTable th, #tokenTable td {
+            border: 1px solid #ff0000;
+            padding: 8px;
+            text-align: center;
+            color: #e0e0e0;
+        }
+
+        #tokenTable th {
+            background-color: #333;
+        }
+
+        #tokenTable td {
+            background-color: #1e1e1e;
+        }
+
+        /* Asegurarse de que los elementos no se salgan de la pantalla */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            #calculadora {
+                width: 100%;
+            }
+
+            #display {
+                font-size: 20px;
+                padding: 10px;
+            }
+
+            .button {
+                width: 60px;
+                height: 60px;
+                font-size: 20px;
+            }
+
+            #treeContainer {
+                overflow-x: auto;
+            }
+
+            svg {
+                width: 100%;
+                height: auto;
+            }
+
+            #tokenTable {
+                font-size: 14px;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .button {
+                width: 50px;
+                height: 50px;
+                font-size: 18px;
+            }
+
+            #display {
+                height: 50px;
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="calculadora">
+        <input type="text" id="display" disabled>
+
+        <div class="buttons-container">
+            <button class="button" onclick="appendNumber('1')">1</button>
+            <button class="button" onclick="appendNumber('2')">2</button>
+            <button class="button" onclick="appendNumber('3')">3</button>
+            <button class="button" onclick="appendOperator('+')">+</button>
+
+            <button class="button" onclick="appendNumber('4')">4</button>
+            <button class="button" onclick="appendNumber('5')">5</button>
+            <button class="button" onclick="appendNumber('6')">6</button>
+            <button class="button" onclick="appendOperator('-')">-</button>
+
+            <button class="button" onclick="appendNumber('7')">7</button>
+            <button class="button" onclick="appendNumber('8')">8</button>
+            <button class="button" onclick="appendNumber('9')">9</button>
+            <button class="button" onclick="appendOperator('*')">*</button>
+
+            <button class="button" onclick="appendOperator('(')">(</button>
+            <button class="button" onclick="appendNumber('0')">0</button>
+            <button class="button" onclick="appendOperator(')')">)</button>
+            <button class="button" onclick="appendOperator('/')">/</button>
+
+            <button class="button" onclick="appendDecimal()">.</button> <!-- Botón de decimal -->
+            <button class="button" onclick="clearDisplay()">C</button>
+            <button class="button" onclick="calculate()">=</button>
+            <button class="button" onclick="generateTree()">Tree</button>
+        </div>
+    </div>
+
+    <div id="treeContainer">
+        <svg id="treeSvg" width="400" height="400"></svg>
+    </div>
+
+    <table id="tokenTable">
+        <thead>
+            <tr>
+                <th>Token</th>
+                <th>Type</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Los tokens aparecerán aquí -->
+        </tbody>
+    </table>
+
+    <script>
+        function appendNumber(number) {
+            document.getElementById('display').value += number;
+        }
+
+        function appendOperator(operator) {
+            document.getElementById('display').value += operator;
+        }
+
+        function appendDecimal() {
+            const display = document.getElementById('display').value;
+            // Verificar que no haya ya un decimal en el último número
+            if (!display.match(/(\d*\.\d*)$/)) {
+                document.getElementById('display').value += '.';
+            }
+        }
+
+        function clearDisplay() {
+            document.getElementById('display').value = '';
+            document.getElementById('treeSvg').innerHTML = ''; // Limpiar el árbol también
+            document.querySelector('#tokenTable tbody').innerHTML = ''; // Limpiar la tabla de tokens
+        }
+
+        function calculate() {
+            const expression = document.getElementById('display').value;
+            fetch('/calcular', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ expression: expression }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    document.getElementById('display').value = data.resultado;
+                } else {
+                    alert('Error en la expresión: ' + data.message);
+                }
+
+                // Mostrar tokens en la tabla
+                const tokenTableBody = document.querySelector('#tokenTable tbody');
+                tokenTableBody.innerHTML = ''; // Limpiar tabla
+                data.tokens.forEach(token => {
+                    const row = document.createElement('tr');
+                    const tokenCell = document.createElement('td');
+                    const typeCell = document.createElement('td');
+                    tokenCell.textContent = token.token;
+                    typeCell.textContent = token.type;
+                    row.appendChild(tokenCell);
+                    row.appendChild(typeCell);
+                    tokenTableBody.appendChild(row);
+                });
+            });
+        }
+
+        async function generateTree() {
+            const expression = document.getElementById('display').value;
+            const response = await fetch('/tree', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ expression: expression }),
+            });
+            const result = await response.json();
+            const svg = document.getElementById('treeSvg');
+            svg.innerHTML = ''; // Limpiar el SVG antes de generar el nuevo árbol
+
+            const nodes = [];
+            const links = [];
+
+            function buildTree(node, x, y, depth) {
+                if (!node) return;
+
+                const horizontalSpacing = 120 / (depth + 1);
+                const verticalSpacing = 80;
+
+                nodes.push({ value: node.value, x: x, y: y });
+
+                if (node.left) {
+                    const leftX = x - horizontalSpacing;
+                    const leftY = y + verticalSpacing;
+                    links.push({ x1: x, y1: y, x2: leftX, y2: leftY });
+                    buildTree(node.left, leftX, leftY, depth + 1);
+                }
+
+                if (node.right) {
+                    const rightX = x + horizontalSpacing;
+                    const rightY = y + verticalSpacing;
+                    links.push({ x1: x, y1: y, x2: rightX, y2: rightY });
+                    buildTree(node.right, rightX, rightY, depth + 1);
+                }
+            }
+
+            buildTree(result.arbol, svg.clientWidth / 2, 40, 0);
+
+            links.forEach(link => {
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", link.x1);
+                line.setAttribute("y1", link.y1);
+                line.setAttribute("x2", link.x2);
+                line.setAttribute("y2", link.y2);
+                svg.appendChild(line);
+            });
+
+            nodes.forEach(node => {
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", node.x);
+                circle.setAttribute("cy", node.y);
+                circle.setAttribute("r", 20);
+                svg.appendChild(circle);
+
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.setAttribute("x", node.x);
+                text.setAttribute("y", node.y + 5);
+                text.setAttribute("text-anchor", "middle");
+                text.textContent = node.value;
+                svg.appendChild(text);
+            });
+        }
+    </script>
+</body>
+</html>
